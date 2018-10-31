@@ -66,9 +66,9 @@ __rmw_get_service_names_and_types(
   // Combined results from the two lists
   std::map<std::string, std::set<std::string>> services;
   {
-    ReaderInfo * slave_target = impl->secondarySubListener;
-    slave_target->mapmutex.lock();
-    for (auto it : slave_target->topicNtypes) {
+    auto &topic_cache = impl->secondarySubListener->topic_cache_;
+    std::lock_guard<std::mutex> guard (topic_cache.getMutex());
+    for (auto it : topic_cache.getTopicToTypes()) {
       std::string service_name = _demangle_service_from_topic(it.first);
       if (!service_name.length()) {
         // not a service
@@ -81,12 +81,11 @@ __rmw_get_service_names_and_types(
         }
       }
     }
-    slave_target->mapmutex.unlock();
   }
   {
-    WriterInfo * slave_target = impl->secondaryPubListener;
-    slave_target->mapmutex.lock();
-    for (auto it : slave_target->topicNtypes) {
+    auto &topic_cache = impl->secondaryPubListener->topic_cache_;
+    std::lock_guard<std::mutex> guard (topic_cache.getMutex());
+    for (auto it : topic_cache.getTopicToTypes()) {
       std::string service_name = _demangle_service_from_topic(it.first);
       if (!service_name.length()) {
         // not a service
@@ -99,7 +98,6 @@ __rmw_get_service_names_and_types(
         }
       }
     }
-    slave_target->mapmutex.unlock();
   }
 
   // Fill out service_names_and_types
