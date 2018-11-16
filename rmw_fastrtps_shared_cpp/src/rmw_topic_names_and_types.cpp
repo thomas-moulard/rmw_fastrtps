@@ -15,6 +15,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <functional>
 
 #include "rcutils/allocator.h"
 #include "rcutils/error_handling.h"
@@ -37,6 +38,7 @@
 
 #include "reader_info.hpp"
 #include "writer_info.hpp"
+#include "types/topic_cache.hpp"
 
 namespace rmw_fastrtps_shared_cpp
 {
@@ -74,34 +76,23 @@ __rmw_get_topic_names_and_types(
   // Get info from publisher and subscriber
   // Combined results from the two lists
   std::map<std::string, std::set<std::string>> topics;
-  {
-    ReaderInfo * slave_target = impl->secondarySubListener;
-    slave_target->mapmutex.lock();
-    for (auto it : slave_target->topicNtypes) {
-      if (!no_demangle && _get_ros_prefix_if_exists(it.first) != ros_topic_prefix) {
-        // if we are demangling and this is not prefixed with rt/, skip it
-        continue;
-      }
-      for (auto & itt : it.second) {
-        topics[it.first].insert(itt);
-      }
-    }
-    slave_target->mapmutex.unlock();
-  }
-  {
-    WriterInfo * slave_target = impl->secondaryPubListener;
-    slave_target->mapmutex.lock();
-    for (auto it : slave_target->topicNtypes) {
-      if (!no_demangle && _get_ros_prefix_if_exists(it.first) != ros_topic_prefix) {
-        // if we are demangling and this is not prefixed with rt/, skip it
-        continue;
-      }
-      for (auto & itt : it.second) {
-        topics[it.first].insert(itt);
-      }
-    }
-    slave_target->mapmutex.unlock();
-  }
+  std::function<void (const LockedObject<TopicCache>&,
+          std::map<std::string, std::set<std::string>>&)> accumulate_topics
+          = [no_demangle](const LockedObject<TopicCache> &topic_cache,
+                  std::map<std::string, std::set<std::string>> &topics) {
+              std::lock_guard<std::mutex> guard(topic_cache.getMutex());
+              for (auto it : topic_cache.getTopicToTypes()) {
+                if (!no_demangle && _get_ros_prefix_if_exists(it.first) != ros_topic_prefix) {
+                  // if we are demangling and this is not prefixed with rt/, skip it
+                  continue;
+                }
+                for (auto & itt : it.second) {
+                  topics[it.first].insert(itt);
+                }
+              }};
+
+  accumulate_topics(impl->secondarySubListener->topic_cache_, topics);
+  accumulate_topics(impl->secondaryPubListener->topic_cache_, topics);
 
   // Copy data to results handle
   if (topics.size() > 0) {

@@ -33,6 +33,7 @@
 #include "rmw/rmw.h"
 
 #include "types/guard_condition.hpp"
+#include "types/topic_cache.hpp"
 
 class WriterInfo : public eprosima::fastrtps::rtps::ReaderListener
 {
@@ -72,37 +73,24 @@ public:
       }
     }
 
-    auto fqdn = proxyData.topicName();
-
     bool trigger = false;
-    mapmutex.lock();
-    if (eprosima::fastrtps::rtps::ALIVE == change->kind) {
-      topicNtypes[fqdn].push_back(proxyData.typeName());
-      trigger = true;
-    } else {
-      auto it = topicNtypes.find(fqdn);
-      if (it != topicNtypes.end()) {
-        const auto & loc =
-          std::find(std::begin(it->second), std::end(it->second), proxyData.typeName());
-        if (loc != std::end(it->second)) {
-          topicNtypes[fqdn].erase(loc, loc + 1);
-          trigger = true;
-        } else {
-          RCUTILS_LOG_DEBUG_NAMED(
-            "rmw_fastrtps_shared_cpp",
-            "unexpected removal of subscription on topic '%s' with type '%s'",
-            fqdn.c_str(), proxyData.typeName().c_str());
-        }
+    {
+      std::lock_guard<std::mutex> guard(topic_cache_.getMutex());
+      if (eprosima::fastrtps::rtps::ALIVE == change->kind) {
+          trigger = topic_cache_.addTopic(proxyData.RTPSParticipantKey(),
+                                          proxyData.topicName(), proxyData.typeName());
+      } else {
+          trigger = topic_cache_.removeTopic(proxyData.RTPSParticipantKey(),
+                                             proxyData.topicName(), proxyData.typeName());
       }
     }
-    mapmutex.unlock();
 
     if (trigger) {
       graph_guard_condition_->trigger();
     }
   }
-  std::map<std::string, std::vector<std::string>> topicNtypes;
-  std::mutex mapmutex;
+
+  LockedObject<TopicCache> topic_cache_;
   eprosima::fastrtps::Participant * participant_;
   GuardCondition * graph_guard_condition_;
 };
