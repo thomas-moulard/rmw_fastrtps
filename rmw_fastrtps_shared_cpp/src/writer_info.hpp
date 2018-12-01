@@ -77,11 +77,11 @@ public:
     {
       std::lock_guard<std::mutex> guard(topic_cache_.getMutex());
       if (eprosima::fastrtps::rtps::ALIVE == change->kind) {
-          trigger = topic_cache_.addTopic(proxyData.RTPSParticipantKey(),
-                                          proxyData.topicName(), proxyData.typeName());
+        trigger = topic_cache_.addTopic(proxyData.RTPSParticipantKey(),
+            proxyData.topicName(), proxyData.typeName());
       } else {
-          trigger = topic_cache_.removeTopic(proxyData.RTPSParticipantKey(),
-                                             proxyData.topicName(), proxyData.typeName());
+        trigger = topic_cache_.removeTopic(proxyData.RTPSParticipantKey(),
+            proxyData.topicName(), proxyData.typeName());
       }
     }
 

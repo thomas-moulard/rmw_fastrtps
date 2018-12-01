@@ -72,7 +72,7 @@ __rmw_count_publishers(
   {
     std::lock_guard<std::mutex> guard(slave_target->topic_cache_.getMutex());
     // Search and sum up the publisher counts
-    auto &topic_types = slave_target->topic_cache_.getTopicToTypes();
+    auto & topic_types = slave_target->topic_cache_.getTopicToTypes();
     for (const auto & topic_fqdn : topic_fqdns) {
       const auto & it = topic_types.find(topic_fqdn);
       if (it != topic_types.end()) {
@@ -127,13 +127,13 @@ __rmw_count_subscribers(
   {
     std::lock_guard<std::mutex> guard(slave_target->topic_cache_.getMutex());
     // Search and sum up the subscriber counts
-      auto &topic_types = slave_target->topic_cache_.getTopicToTypes();
-      for (const auto & topic_fqdn : topic_fqdns) {
-          const auto & it = topic_types.find(topic_fqdn);
-          if (it != topic_types.end()) {
-              *count += it->second.size();
-          }
+    auto & topic_types = slave_target->topic_cache_.getTopicToTypes();
+    for (const auto & topic_fqdn : topic_fqdns) {
+      const auto & it = topic_types.find(topic_fqdn);
+      if (it != topic_types.end()) {
+        *count += it->second.size();
       }
+    }
   }
 
   RCUTILS_LOG_DEBUG_NAMED(
