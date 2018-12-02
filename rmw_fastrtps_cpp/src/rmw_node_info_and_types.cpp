@@ -65,5 +65,4 @@ rmw_get_service_names_and_types_by_node(
     eprosima_fastrtps_identifier, node, allocator, node_name, node_namespace,
     service_names_and_types);
 }
-
-} //extern "C"
+}  // extern "C"

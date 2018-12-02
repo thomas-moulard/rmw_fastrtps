@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <string.h>
 
 #include <map>
 #include <set>
 #include <string>
 #include <functional>
-#include <string.h>
+#include <utility>
 
 #include "rcutils/allocator.h"
 #include "rcutils/error_handling.h"
@@ -486,4 +487,4 @@ __rmw_get_service_names_and_types_by_node(
   }
   return RMW_RET_OK;
 }
-} // namespace rmw_fastrtps_shared_cpp
+}  // namespace rmw_fastrtps_shared_cpp

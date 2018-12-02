@@ -12,20 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_FASTRTPS_CPP_TOPIC_CACHE_H
-#define RMW_FASTRTPS_CPP_TOPIC_CACHE_H
+#ifndef TYPES__TOPIC_CACHE_HPP_
+#define TYPES__TOPIC_CACHE_HPP_
 
-#include "fastrtps/participant/Participant.h"
-#include "rcutils/logging_macros.h"
-#include <fastrtps/rtps/common/InstanceHandle.h>
-#include <fastrtps/rtps/common/Guid.h>
+#include <algorithm>
+#include <iterator>
+#include <map>
+#include <set>
+#include <sstream>
+#include <string>
 #include <unordered_map>
 #include <utility>
-#include <set>
-#include <string>
 #include <vector>
-#include <sstream>
-#include <iterator>
+
+#include "fastrtps/participant/Participant.h"
+#include "fastrtps/rtps/common/Guid.h"
+#include "fastrtps/rtps/common/InstanceHandle.h"
+#include "rcutils/logging_macros.h"
 
 typedef eprosima::fastrtps::rtps::GUID_t GUID_t;
 
@@ -167,7 +170,6 @@ public:
     if (guid_topics_pair != participant_to_topics_.end() &&
       guid_topics_pair->second.find(topic_name) != guid_topics_pair->second.end())
     {
-
       auto & type_vec = guid_topics_pair->second[topic_name];
       type_vec.erase(std::find(type_vec.begin(), type_vec.end(), type_name));
       if (type_vec.size() == 0) {
@@ -231,4 +233,4 @@ public:
   }
 };
 
-#endif //RMW_FASTRTPS_CPP_TOPIC_CACHE_H
+#endif  // TYPES__TOPIC_CACHE_HPP_
